@@ -197,7 +197,10 @@
     </div>
     <div class="flex items-center gap-4 text-xs text-slate-400">
       <span>快捷鍵: <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">←</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">→</kbd> 或 <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">Space</kbd> 切換</span>
-      <button id="fullscreenBtn" class="hover:text-cyan-400 transition" title="切換全螢幕">⛶ 全螢幕</button>
+      <a href="slides.pptx" download="slides.pptx" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 hover:text-white transition font-medium text-xs shadow-sm shadow-cyan-950 cursor-pointer" title="下載完整 PPTX 簡報檔案">
+        <span>📥 下載 PPTX</span>
+      </a>
+      <button id="fullscreenBtn" class="hover:text-cyan-400 transition cursor-pointer" title="切換全螢幕">⛶ 全螢幕</button>
     </div>
   </header>
 
@@ -637,11 +640,14 @@
       <div class="dot" data-target="8" title="第 8 頁"></div>
     </div>
 
-    <!-- Slide Index Display -->
-    <div class="flex items-center gap-2">
+    <!-- Slide Index Display & Download Button -->
+    <div class="flex items-center gap-3">
       <span class="text-sm font-mono text-slate-400 font-semibold">
         PAGE <span id="currentSlideNum" class="text-cyan-400 text-base">1</span> / 8
       </span>
+      <a href="slides.pptx" download="slides.pptx" class="nav-btn !py-1 !px-3 text-xs text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/20" title="下載 slides.pptx">
+        <span>📥 下載 PPTX</span>
+      </a>
     </div>
   </footer>
 
