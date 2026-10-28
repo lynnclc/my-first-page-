@@ -7,9 +7,9 @@
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     @keyframes pulse-ring {
-      0% { transform: scale(0.98); opacity: 0.8; }
+      0% { transform: scale(0.98); opacity: 0.85; }
       50% { transform: scale(1.02); opacity: 1; }
-      100% { transform: scale(0.98); opacity: 0.8; }
+      100% { transform: scale(0.98); opacity: 0.85; }
     }
     .timer-running {
       animation: pulse-ring 3s ease-in-out infinite;
@@ -21,10 +21,20 @@
       background: rgba(148, 163, 184, 0.2);
       border-radius: 4px;
     }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .toast-animate {
+      animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-rose-500 selection:text-white font-sans antialiased">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-rose-500 selection:text-white font-sans antialiased relative">
   
+  <!-- Floating Toast Notification -->
+  <div id="toastContainer" class="fixed top-5 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4"></div>
+
   <!-- Background Glow FX -->
   <div id="ambientGlow" class="fixed inset-0 pointer-events-none transition-colors duration-1000 -z-10 bg-[radial-gradient(circle_at_50%_40%,rgba(244,63,94,0.15)_0%,transparent_60%)]"></div>
 
@@ -46,13 +56,14 @@
         </div>
       </div>
 
-      <!-- Sound & Settings Buttons -->
+      <!-- Action Toggles -->
       <div class="flex items-center gap-1.5">
-        <button id="soundToggleBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm" title="提示音開關">
-          🔔
+        <button id="soundToggleBtn" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition text-sm flex items-center gap-1 border border-slate-800" title="提示音切換">
+          <span id="soundIcon">🔔</span>
         </button>
-        <button id="notifyBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm" title="開啟桌面通知">
-          💬
+        <button id="notifyBtn" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition text-sm flex items-center gap-1 border border-slate-800" title="通知提醒狀態">
+          <span id="notifyIcon">💬</span>
+          <span id="notifyStatusDot" class="w-2 h-2 rounded-full bg-slate-500 inline-block"></span>
         </button>
       </div>
     </header>
@@ -118,8 +129,8 @@
         </div>
       </div>
 
-      <!-- Tomato Visual Rack (Up to 12 slots) -->
-      <div id="tomatoRack" class="flex flex-wrap gap-2 mb-3 min-h-[32px] p-2 bg-slate-900/80 rounded-xl border border-slate-800/60 items-center">
+      <!-- Tomato Visual Rack -->
+      <div id="tomatoRack" class="flex flex-wrap gap-2 mb-3 min-h-[36px] p-2 bg-slate-900/80 rounded-xl border border-slate-800/60 items-center">
         <span class="text-xs text-slate-500 italic">完成 50 分鐘即可獲得 1 顆番茄 🍅</span>
       </div>
 
@@ -155,10 +166,52 @@
 
   </div>
 
+  <!-- In-Page Completion Modal (Replaces native blocking alert) -->
+  <div id="celebrationModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-700/80 rounded-3xl p-6 text-center shadow-2xl transform scale-100 transition-all">
+      <div class="text-5xl mb-3" id="modalEmoji">🎉</div>
+      <h3 class="text-xl font-bold text-white mb-1" id="modalTitle">50 分鐘專注完成！</h3>
+      <p class="text-sm text-slate-300 mb-4" id="modalDesc">太棒了！已累積 1 顆番茄，休息 10 分鐘放鬆一下吧！</p>
+      
+      <div class="flex items-center justify-center gap-2 p-3 bg-slate-950/60 rounded-2xl border border-slate-800 mb-5">
+        <span class="text-2xl">🍅</span>
+        <span class="text-xs text-slate-300">今日累計番茄：<strong id="modalTomatoCount" class="text-rose-400 font-bold text-sm">1</strong> 顆</span>
+      </div>
+
+      <button id="modalActionBtn" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg transition active:scale-95">
+        ☕ 開始 10 分鐘休息
+      </button>
+    </div>
+  </div>
+
+  <!-- Notification Guide Modal -->
+  <div id="guideModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl p-6 text-left shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🔔 提醒方式說明</span>
+        </h3>
+        <button id="closeGuideBtn" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed mb-3">
+        本計時器已啟用<strong>【內建和弦提示音 🔔】</strong>與<strong>【分頁標題動態閃爍】</strong>，即使在背景或切換分頁，時間到時都會響起並提醒您！
+      </p>
+      <div class="p-3 bg-slate-950/70 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1 mb-4">
+        <div class="font-semibold text-cyan-300">如需啟用 Chrome 桌面右下角彈出通知：</div>
+        <div>1. 點擊網址列左側的 <strong>「調整 / 鎖頭圖示」</strong></div>
+        <div>2. 將 <strong>「通知 (Notification)」</strong> 切換為 <strong>允許</strong></div>
+        <div>3. 重新整理網頁即可生效</div>
+      </div>
+      <button id="confirmGuideBtn" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs transition">
+        我知道了
+      </button>
+    </div>
+  </div>
+
   <script>
     // --- Configuration ---
-    const WORK_DURATION = 50 * 60; // 50 mins in seconds
-    const BREAK_DURATION = 10 * 60; // 10 mins in seconds
+    const WORK_DURATION = 50 * 60; // 50 mins
+    const BREAK_DURATION = 10 * 60; // 10 mins
     const DAILY_GOAL_TOMATOES = 6;
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 102; // ~640.88
 
@@ -169,16 +222,32 @@
     let isRunning = false;
     let roundCount = 1;
     let soundEnabled = true;
+    let titleBlinkInterval = null;
+
+    // --- Toast Function ---
+    function showToast(message, icon = '🔔') {
+      const toastContainer = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast-animate px-4 py-2.5 bg-slate-800/95 border border-slate-700/80 rounded-2xl shadow-xl backdrop-blur-md text-xs text-slate-200 flex items-center gap-2 pointer-events-auto';
+      toast.innerHTML = `<span class="text-sm">${icon}</span><span>${message}</span>`;
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = 'all 0.3s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
 
     // --- Audio Synthesis (Web Audio API) ---
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
 
     function getAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new AudioContext();
+      if (!audioCtx && AudioCtxClass) {
+        audioCtx = new AudioCtxClass();
       }
-      if (audioCtx.state === 'suspended') {
+      if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
       return audioCtx;
@@ -188,6 +257,7 @@
       if (!soundEnabled) return;
       try {
         const ctx = getAudioContext();
+        if (!ctx) return;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = type;
@@ -207,7 +277,7 @@
     }
 
     function playChimeFinish() {
-      // Gentle chord: C5 -> E5 -> G5 -> C6
+      // Gentle uplifting chime
       playTone(523.25, 0.6, 'sine', 0);
       playTone(659.25, 0.6, 'sine', 0.15);
       playTone(783.99, 0.6, 'sine', 0.3);
@@ -215,7 +285,7 @@
     }
 
     function playClick() {
-      playTone(800, 0.05, 'sine', 0);
+      playTone(800, 0.04, 'sine', 0);
     }
 
     // --- DOM Elements ---
@@ -244,8 +314,21 @@
     const historyList = document.getElementById('historyList');
     const clearTodayBtn = document.getElementById('clearTodayBtn');
     const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const soundIcon = document.getElementById('soundIcon');
     const notifyBtn = document.getElementById('notifyBtn');
+    const notifyStatusDot = document.getElementById('notifyStatusDot');
     const currentDateStr = document.getElementById('currentDateStr');
+    
+    // Modals
+    const celebrationModal = document.getElementById('celebrationModal');
+    const modalEmoji = document.getElementById('modalEmoji');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalTomatoCount = document.getElementById('modalTomatoCount');
+    const modalActionBtn = document.getElementById('modalActionBtn');
+    const guideModal = document.getElementById('guideModal');
+    const closeGuideBtn = document.getElementById('closeGuideBtn');
+    const confirmGuideBtn = document.getElementById('confirmGuideBtn');
 
     // --- LocalStorage & Daily Data ---
     function getTodayKey() {
@@ -264,7 +347,6 @@
           }
         } catch (e) {}
       }
-      // New day or first time
       return {
         date: today,
         tomatoes: 0,
@@ -282,19 +364,20 @@
     function renderDailyStats() {
       tomatoCountEl.textContent = dailyStats.tomatoes;
       totalFocusMinutesEl.textContent = dailyStats.focusMinutes;
+      modalTomatoCount.textContent = dailyStats.tomatoes;
       
       const pct = Math.min(100, Math.round((dailyStats.tomatoes / DAILY_GOAL_TOMATOES) * 100));
       goalProgressBar.style.width = `${pct}%`;
       goalPercentEl.textContent = `${pct}%`;
 
-      // Render Tomato Icons
+      // Render Tomato Rack
       tomatoRack.innerHTML = '';
       if (dailyStats.tomatoes === 0) {
         tomatoRack.innerHTML = '<span class="text-xs text-slate-500 italic">完成 50 分鐘即可獲得 1 顆番茄 🍅</span>';
       } else {
         for (let i = 0; i < dailyStats.tomatoes; i++) {
           const t = document.createElement('span');
-          t.className = 'text-xl animate-bounce';
+          t.className = 'text-xl animate-bounce inline-block';
           t.textContent = '🍅';
           t.title = `第 ${i + 1} 顆番茄 (50分鐘)`;
           tomatoRack.appendChild(t);
@@ -324,13 +407,30 @@
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
+    function stopTitleBlink() {
+      if (titleBlinkInterval) {
+        clearInterval(titleBlinkInterval);
+        titleBlinkInterval = null;
+      }
+    }
+
+    function startTitleBlink(text1, text2) {
+      stopTitleBlink();
+      let toggle = false;
+      titleBlinkInterval = setInterval(() => {
+        document.title = toggle ? text1 : text2;
+        toggle = !toggle;
+      }, 1000);
+    }
+
     function updateDisplay() {
       const timeStr = formatTime(remainingTime);
       timeDisplay.textContent = timeStr;
       
-      // Update browser tab title
-      const modeText = currentMode === 'work' ? '🍅 專注中' : '☕ 休息中';
-      document.title = isRunning ? `(${timeStr}) ${modeText} - 番茄鐘` : '🍅 50/10 番茄鐘計時器';
+      if (!titleBlinkInterval) {
+        const modeText = currentMode === 'work' ? '🍅 專注中' : '☕ 休息中';
+        document.title = isRunning ? `(${timeStr}) ${modeText} - 番茄鐘` : '🍅 50/10 番茄鐘計時器';
+      }
 
       // Circular progress bar stroke
       const total = currentMode === 'work' ? WORK_DURATION : BREAK_DURATION;
@@ -342,6 +442,7 @@
     function switchMode(newMode, manual = false) {
       currentMode = newMode;
       pauseTimer();
+      stopTitleBlink();
 
       if (newMode === 'work') {
         remainingTime = WORK_DURATION;
@@ -373,7 +474,9 @@
     // --- Timer Lifecycle ---
     function startTimer() {
       if (isRunning) return;
+      getAudioContext(); // Unlock audio context
       playClick();
+      stopTitleBlink();
       isRunning = true;
       playIcon.textContent = '⏸';
       playText.textContent = '暫停';
@@ -413,6 +516,7 @@
 
     function resetTimer() {
       pauseTimer();
+      stopTitleBlink();
       remainingTime = currentMode === 'work' ? WORK_DURATION : BREAK_DURATION;
       stateLabel.textContent = '準備開始';
       playText.textContent = currentMode === 'work' ? '開始專注' : '開始休息';
@@ -421,6 +525,7 @@
 
     function skipStage() {
       pauseTimer();
+      stopTitleBlink();
       if (currentMode === 'work') {
         switchMode('break');
       } else {
@@ -428,13 +533,15 @@
       }
     }
 
-    function sendNotification(title, body) {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(title, {
-          body,
-          icon: 'https://cdn-icons-png.flaticon.com/512/1202/1202125.png'
-        });
-      }
+    function trySendBrowserNotification(title, body) {
+      try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(title, {
+            body,
+            icon: 'https://cdn-icons-png.flaticon.com/512/1202/1202125.png'
+          });
+        }
+      } catch (e) {}
     }
 
     function onTimerComplete() {
@@ -457,13 +564,20 @@
         saveDailyStats(dailyStats);
         renderDailyStats();
 
-        sendNotification('🍅 50分鐘工作完成！', '太棒了！已累積 1 顆番茄，休息 10 分鐘放鬆一下眼睛與筋骨吧！');
-        alert('🎉 恭喜完成 50 分鐘專注！已累積 1 顆番茄 🍅\n接下來休息 10 分鐘！');
+        // Flashing title & sound
+        startTitleBlink('🔔【時間到！】完成 50 分鐘專注！', '🍅 請開始 10 分鐘休息！');
+        trySendBrowserNotification('🍅 50分鐘專注完成！', '太棒了！已累積 1 顆番茄，休息 10 分鐘放鬆一下吧！');
+
+        // Show elegant in-page modal
+        modalEmoji.textContent = '🎉';
+        modalTitle.textContent = '50 分鐘專注完成！';
+        modalDesc.textContent = '太棒了！恭喜累積 1 顆番茄，現在讓眼睛與大腦放鬆 10 分鐘吧！';
+        modalActionBtn.textContent = '☕ 開始 10 分鐘休息';
+        modalActionBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg transition active:scale-95';
+        celebrationModal.classList.remove('hidden');
 
         roundCount++;
         currentRoundNum.textContent = roundCount;
-        switchMode('break');
-        startTimer(); // Auto start break
       } else {
         dailyStats.history.unshift({
           type: 'break',
@@ -472,42 +586,90 @@
         saveDailyStats(dailyStats);
         renderDailyStats();
 
-        sendNotification('☕ 10分鐘休息結束！', '充電完畢，準備好進入下一個 50 分鐘的專注時段了嗎？');
-        alert('⚡ 10 分鐘休息結束！準備開始下一輪專注！');
+        startTitleBlink('🔔【休息結束！】準備工作', '⚡ 開始 50 分鐘專注');
+        trySendBrowserNotification('☕ 10分鐘休息結束！', '充電完畢，準備好進入下一個 50 分鐘的專注時段了嗎？');
 
-        switchMode('work');
+        modalEmoji.textContent = '⚡';
+        modalTitle.textContent = '10 分鐘休息結束！';
+        modalDesc.textContent = '充電完成！準備好進入下一輪 50 分鐘的高效專注時段了嗎？';
+        modalActionBtn.textContent = '💻 開始 50 分鐘專注';
+        modalActionBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white shadow-lg transition active:scale-95';
+        celebrationModal.classList.remove('hidden');
       }
     }
 
-    // --- Event Listeners ---
+    // Modal action button click
+    modalActionBtn.addEventListener('click', () => {
+      celebrationModal.classList.add('hidden');
+      stopTitleBlink();
+      if (currentMode === 'work') {
+        switchMode('break');
+        startTimer();
+      } else {
+        switchMode('work');
+        startTimer();
+      }
+    });
+
+    // --- Notification Status Handling ---
+    function updateNotifyStatusUI() {
+      if (!('Notification' in window)) {
+        notifyStatusDot.className = 'w-2 h-2 rounded-full bg-slate-600 inline-block';
+        notifyBtn.title = '此瀏覽器不支援桌面通知';
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        notifyStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-[0_0_6px_#10b981]';
+        notifyBtn.title = '桌面通知：已開啟';
+      } else if (Notification.permission === 'denied') {
+        notifyStatusDot.className = 'w-2 h-2 rounded-full bg-amber-400 inline-block';
+        notifyBtn.title = '使用內建音效與閃爍提醒（點擊查看說明）';
+      } else {
+        notifyStatusDot.className = 'w-2 h-2 rounded-full bg-slate-400 inline-block';
+        notifyBtn.title = '點擊設定通知提醒';
+      }
+    }
+
+    notifyBtn.addEventListener('click', () => {
+      if (!('Notification' in window)) {
+        showToast('此瀏覽器不支援桌面通知，已使用內建和弦鈴聲提醒！', '🔔');
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        showToast('桌面通知與和弦鈴聲已全部開啟！', '✅');
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().then(p => {
+          updateNotifyStatusUI();
+          if (p === 'granted') {
+            showToast('已成功授權開啟桌面通知！', '🎉');
+          } else {
+            showToast('已為您啟用【內建音效與閃爍標題】提醒！', '🔔');
+          }
+        });
+      } else {
+        // Denied: show guide modal gently instead of ugly alert
+        guideModal.classList.remove('hidden');
+      }
+    });
+
+    closeGuideBtn.addEventListener('click', () => guideModal.classList.add('hidden'));
+    confirmGuideBtn.addEventListener('click', () => guideModal.classList.add('hidden'));
+
+    // Sound Toggle
+    soundToggleBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundIcon.textContent = soundEnabled ? '🔔' : '🔕';
+      soundToggleBtn.title = soundEnabled ? '提示音：開啟' : '提示音：靜音';
+      showToast(soundEnabled ? '提示音已開啟' : '提示音已靜音', soundEnabled ? '🔔' : '🔕');
+      if (soundEnabled) playClick();
+    });
+
+    // Control Buttons
     startPauseBtn.addEventListener('click', toggleTimer);
     resetBtn.addEventListener('click', resetTimer);
     skipBtn.addEventListener('click', skipStage);
     workTab.addEventListener('click', () => switchMode('work', true));
     breakTab.addEventListener('click', () => switchMode('break', true));
-
-    // Sound Toggle
-    soundToggleBtn.addEventListener('click', () => {
-      soundEnabled = !soundEnabled;
-      soundToggleBtn.textContent = soundEnabled ? '🔔' : '🔕';
-      soundToggleBtn.title = soundEnabled ? '提示音：開啟' : '提示音：靜音';
-    });
-
-    // Notification Permission
-    notifyBtn.addEventListener('click', () => {
-      if ('Notification' in window) {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            notifyBtn.textContent = '💬✅';
-            alert('桌面通知授權成功！');
-          } else {
-            alert('通知權限未開啟或被拒絕。');
-          }
-        });
-      } else {
-        alert('此瀏覽器不支援桌面通知功能。');
-      }
-    });
 
     // History Toggle
     toggleHistoryBtn.addEventListener('click', () => {
@@ -532,6 +694,7 @@
         };
         saveDailyStats(dailyStats);
         renderDailyStats();
+        showToast('今日數據已歸零重設', '🔄');
       }
     });
 
@@ -543,6 +706,7 @@
     // Init display
     updateDisplay();
     renderDailyStats();
+    updateNotifyStatusUI();
   </script>
 </body>
 </html>
