@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍅 50/10 番茄鐘計時器</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulse-ring {
+      0% { transform: scale(0.98); opacity: 0.8; }
+      50% { transform: scale(1.02); opacity: 1; }
+      100% { transform: scale(0.98); opacity: 0.8; }
+    }
+    .timer-running {
+      animation: pulse-ring 3s ease-in-out infinite;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-rose-500 selection:text-white font-sans antialiased">
+  
+  <!-- Background Glow FX -->
+  <div id="ambientGlow" class="fixed inset-0 pointer-events-none transition-colors duration-1000 -z-10 bg-[radial-gradient(circle_at_50%_40%,rgba(244,63,94,0.15)_0%,transparent_60%)]"></div>
+
+  <!-- Main Container -->
+  <div class="w-full max-w-md bg-slate-900/90 border border-slate-800 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+    
+    <!-- Top Header -->
+    <header class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-2.5">
+        <span class="text-2xl" id="modeIcon">🍅</span>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            番茄鐘計時器
+            <span id="modeBadge" class="text-xs px-2 py-0.5 rounded-full font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30">
+              專注工作 (50m)
+            </span>
+          </h1>
+          <p class="text-xs text-slate-400" id="currentDateStr">2026年10月28日</p>
+        </div>
+      </div>
+
+      <!-- Sound & Settings Buttons -->
+      <div class="flex items-center gap-1.5">
+        <button id="soundToggleBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm" title="提示音開關">
+          🔔
+        </button>
+        <button id="notifyBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm" title="開啟桌面通知">
+          💬
+        </button>
+      </div>
+    </header>
+
+    <!-- Mode Selector Tabs -->
+    <div class="grid grid-cols-2 gap-2 bg-slate-950/60 p-1.5 rounded-2xl border border-slate-800/80 mb-6">
+      <button id="workTab" class="py-2 text-xs font-semibold rounded-xl transition-all shadow-sm bg-rose-600 text-white shadow-rose-950">
+        💻 專注工作 (50分)
+      </button>
+      <button id="breakTab" class="py-2 text-xs font-semibold rounded-xl transition-all text-slate-400 hover:text-slate-200">
+        ☕ 休息放鬆 (10分)
+      </button>
+    </div>
+
+    <!-- Circular Timer Display -->
+    <div class="relative flex items-center justify-center my-4">
+      <svg class="w-64 h-64 transform -rotate-90" viewBox="0 0 240 240">
+        <!-- Background Track -->
+        <circle cx="120" cy="120" r="102" stroke="currentColor" stroke-width="12" class="text-slate-800/60" fill="transparent" />
+        <!-- Progress Bar -->
+        <circle id="progressCircle" cx="120" cy="120" r="102" stroke="currentColor" stroke-width="12" stroke-linecap="round" class="text-rose-500 transition-all duration-500" fill="transparent" stroke-dasharray="640.88" stroke-dashoffset="0" />
+      </svg>
+
+      <!-- Center Time & State -->
+      <div class="absolute flex flex-col items-center justify-center text-center">
+        <div id="timeDisplay" class="text-5xl font-mono font-black tracking-tight text-white drop-shadow">
+          50:00
+        </div>
+        <div id="stateLabel" class="text-xs uppercase tracking-widest text-slate-400 font-semibold mt-1">
+          準備開始
+        </div>
+        <div id="roundInfo" class="text-[11px] text-slate-500 mt-0.5">
+          第 <span id="currentRoundNum" class="text-rose-400 font-bold">1</span> 輪
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer Controls -->
+    <div class="flex items-center justify-center gap-3 my-6">
+      <button id="resetBtn" class="p-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700/80 text-slate-300 hover:text-white transition active:scale-95 border border-slate-700/60" title="重設計時">
+        🔄
+      </button>
+      
+      <button id="startPauseBtn" class="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold text-base shadow-lg shadow-rose-900/30 transition active:scale-95 flex items-center justify-center gap-2">
+        <span id="playIcon">▶</span>
+        <span id="playText">開始專注</span>
+      </button>
+
+      <button id="skipBtn" class="p-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700/80 text-slate-300 hover:text-white transition active:scale-95 border border-slate-700/60" title="跳過此階段">
+        ⏭️
+      </button>
+    </div>
+
+    <!-- Daily Stats & Tomato Accumulation -->
+    <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🍅</span>
+          <span class="text-xs font-bold text-slate-200">當日番茄累積追蹤</span>
+        </div>
+        <div class="text-xs font-mono text-slate-400">
+          已累積：<strong id="tomatoCount" class="text-rose-400 text-sm font-bold">0</strong> 顆
+        </div>
+      </div>
+
+      <!-- Tomato Visual Rack (Up to 12 slots) -->
+      <div id="tomatoRack" class="flex flex-wrap gap-2 mb-3 min-h-[32px] p-2 bg-slate-900/80 rounded-xl border border-slate-800/60 items-center">
+        <span class="text-xs text-slate-500 italic">完成 50 分鐘即可獲得 1 顆番茄 🍅</span>
+      </div>
+
+      <!-- Daily Focus Time & Progress Bar -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-[11px] text-slate-400">
+          <span>今日累計專注時間：<strong id="totalFocusMinutes" class="text-cyan-400 font-semibold">0</strong> 分鐘</span>
+          <span>目標進度：<span id="goalPercent">0%</span> (目標 6 顆)</span>
+        </div>
+        <div class="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden">
+          <div id="goalProgressBar" class="bg-gradient-to-r from-rose-500 to-amber-500 h-full w-0 transition-all duration-500 rounded-full"></div>
+        </div>
+      </div>
+
+      <!-- Log history toggle -->
+      <div class="mt-3 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+        <button id="toggleHistoryBtn" class="hover:text-slate-200 flex items-center gap-1 transition">
+          <span>📋 今日完成紀錄</span>
+          <span id="historyArrow">▼</span>
+        </button>
+        <button id="clearTodayBtn" class="text-slate-500 hover:text-red-400 transition" title="清空今日統計">
+          重設今日數據
+        </button>
+      </div>
+
+      <!-- History List Drawer -->
+      <div id="historyDrawer" class="hidden mt-2 max-h-32 overflow-y-auto custom-scroll space-y-1 pr-1">
+        <div id="historyList" class="text-[11px] text-slate-400 space-y-1">
+          <div class="text-slate-600 text-center py-2">尚未有完成紀錄</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Configuration ---
+    const WORK_DURATION = 50 * 60; // 50 mins in seconds
+    const BREAK_DURATION = 10 * 60; // 10 mins in seconds
+    const DAILY_GOAL_TOMATOES = 6;
+    const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 102; // ~640.88
+
+    // --- State ---
+    let currentMode = 'work'; // 'work' | 'break'
+    let remainingTime = WORK_DURATION;
+    let timerId = null;
+    let isRunning = false;
+    let roundCount = 1;
+    let soundEnabled = true;
+
+    // --- Audio Synthesis (Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, duration, type = 'sine', startDelay = 0) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + startDelay);
+        
+        gain.gain.setValueAtTime(0.2, ctx.currentTime + startDelay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startDelay + duration);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(ctx.currentTime + startDelay);
+        osc.stop(ctx.currentTime + startDelay + duration);
+      } catch (e) {
+        console.error("Audio error", e);
+      }
+    }
+
+    function playChimeFinish() {
+      // Gentle chord: C5 -> E5 -> G5 -> C6
+      playTone(523.25, 0.6, 'sine', 0);
+      playTone(659.25, 0.6, 'sine', 0.15);
+      playTone(783.99, 0.6, 'sine', 0.3);
+      playTone(1046.50, 0.9, 'triangle', 0.45);
+    }
+
+    function playClick() {
+      playTone(800, 0.05, 'sine', 0);
+    }
+
+    // --- DOM Elements ---
+    const timeDisplay = document.getElementById('timeDisplay');
+    const stateLabel = document.getElementById('stateLabel');
+    const currentRoundNum = document.getElementById('currentRoundNum');
+    const progressCircle = document.getElementById('progressCircle');
+    const startPauseBtn = document.getElementById('startPauseBtn');
+    const playIcon = document.getElementById('playIcon');
+    const playText = document.getElementById('playText');
+    const resetBtn = document.getElementById('resetBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const workTab = document.getElementById('workTab');
+    const breakTab = document.getElementById('breakTab');
+    const modeBadge = document.getElementById('modeBadge');
+    const modeIcon = document.getElementById('modeIcon');
+    const ambientGlow = document.getElementById('ambientGlow');
+    const tomatoCountEl = document.getElementById('tomatoCount');
+    const tomatoRack = document.getElementById('tomatoRack');
+    const totalFocusMinutesEl = document.getElementById('totalFocusMinutes');
+    const goalProgressBar = document.getElementById('goalProgressBar');
+    const goalPercentEl = document.getElementById('goalPercent');
+    const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
+    const historyDrawer = document.getElementById('historyDrawer');
+    const historyArrow = document.getElementById('historyArrow');
+    const historyList = document.getElementById('historyList');
+    const clearTodayBtn = document.getElementById('clearTodayBtn');
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const notifyBtn = document.getElementById('notifyBtn');
+    const currentDateStr = document.getElementById('currentDateStr');
+
+    // --- LocalStorage & Daily Data ---
+    function getTodayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function loadDailyStats() {
+      const today = getTodayKey();
+      const raw = localStorage.getItem('pomodoro_daily_stats');
+      if (raw) {
+        try {
+          const data = JSON.parse(raw);
+          if (data.date === today) {
+            return data;
+          }
+        } catch (e) {}
+      }
+      // New day or first time
+      return {
+        date: today,
+        tomatoes: 0,
+        focusMinutes: 0,
+        history: []
+      };
+    }
+
+    function saveDailyStats(stats) {
+      localStorage.setItem('pomodoro_daily_stats', JSON.stringify(stats));
+    }
+
+    let dailyStats = loadDailyStats();
+
+    function renderDailyStats() {
+      tomatoCountEl.textContent = dailyStats.tomatoes;
+      totalFocusMinutesEl.textContent = dailyStats.focusMinutes;
+      
+      const pct = Math.min(100, Math.round((dailyStats.tomatoes / DAILY_GOAL_TOMATOES) * 100));
+      goalProgressBar.style.width = `${pct}%`;
+      goalPercentEl.textContent = `${pct}%`;
+
+      // Render Tomato Icons
+      tomatoRack.innerHTML = '';
+      if (dailyStats.tomatoes === 0) {
+        tomatoRack.innerHTML = '<span class="text-xs text-slate-500 italic">完成 50 分鐘即可獲得 1 顆番茄 🍅</span>';
+      } else {
+        for (let i = 0; i < dailyStats.tomatoes; i++) {
+          const t = document.createElement('span');
+          t.className = 'text-xl animate-bounce';
+          t.textContent = '🍅';
+          t.title = `第 ${i + 1} 顆番茄 (50分鐘)`;
+          tomatoRack.appendChild(t);
+        }
+      }
+
+      // Render History List
+      if (dailyStats.history.length === 0) {
+        historyList.innerHTML = '<div class="text-slate-600 text-center py-2">尚未有完成紀錄</div>';
+      } else {
+        historyList.innerHTML = dailyStats.history.map(item => `
+          <div class="flex items-center justify-between py-1 border-b border-slate-800/40">
+            <span class="flex items-center gap-1.5 text-slate-300">
+              <span>${item.type === 'work' ? '🍅' : '☕'}</span>
+              <span>${item.type === 'work' ? '專注時段 (50m)' : '休息時段 (10m)'}</span>
+            </span>
+            <span class="text-slate-500 font-mono">${item.timestamp}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // --- UI Formatting & Progress ---
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateDisplay() {
+      const timeStr = formatTime(remainingTime);
+      timeDisplay.textContent = timeStr;
+      
+      // Update browser tab title
+      const modeText = currentMode === 'work' ? '🍅 專注中' : '☕ 休息中';
+      document.title = isRunning ? `(${timeStr}) ${modeText} - 番茄鐘` : '🍅 50/10 番茄鐘計時器';
+
+      // Circular progress bar stroke
+      const total = currentMode === 'work' ? WORK_DURATION : BREAK_DURATION;
+      const progressRatio = remainingTime / total;
+      const offset = CIRCLE_CIRCUMFERENCE * (1 - progressRatio);
+      progressCircle.style.strokeDashoffset = offset;
+    }
+
+    function switchMode(newMode, manual = false) {
+      currentMode = newMode;
+      pauseTimer();
+
+      if (newMode === 'work') {
+        remainingTime = WORK_DURATION;
+        workTab.className = 'py-2 text-xs font-semibold rounded-xl transition-all shadow-sm bg-rose-600 text-white shadow-rose-950';
+        breakTab.className = 'py-2 text-xs font-semibold rounded-xl transition-all text-slate-400 hover:text-slate-200';
+        modeBadge.className = 'text-xs px-2 py-0.5 rounded-full font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30';
+        modeBadge.textContent = '專注工作 (50m)';
+        modeIcon.textContent = '🍅';
+        progressCircle.className = 'text-rose-500 transition-all duration-500';
+        startPauseBtn.className = 'flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold text-base shadow-lg shadow-rose-900/30 transition active:scale-95 flex items-center justify-center gap-2';
+        ambientGlow.className = 'fixed inset-0 pointer-events-none transition-colors duration-1000 -z-10 bg-[radial-gradient(circle_at_50%_40%,rgba(244,63,94,0.15)_0%,transparent_60%)]';
+        stateLabel.textContent = '準備專注';
+      } else {
+        remainingTime = BREAK_DURATION;
+        breakTab.className = 'py-2 text-xs font-semibold rounded-xl transition-all shadow-sm bg-emerald-600 text-white shadow-emerald-950';
+        workTab.className = 'py-2 text-xs font-semibold rounded-xl transition-all text-slate-400 hover:text-slate-200';
+        modeBadge.className = 'text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        modeBadge.textContent = '休息放鬆 (10m)';
+        modeIcon.textContent = '☕';
+        progressCircle.className = 'text-emerald-500 transition-all duration-500';
+        startPauseBtn.className = 'flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-base shadow-lg shadow-emerald-900/30 transition active:scale-95 flex items-center justify-center gap-2';
+        ambientGlow.className = 'fixed inset-0 pointer-events-none transition-colors duration-1000 -z-10 bg-[radial-gradient(circle_at_50%_40%,rgba(16,185,129,0.15)_0%,transparent_60%)]';
+        stateLabel.textContent = '休息時間';
+      }
+
+      updateDisplay();
+    }
+
+    // --- Timer Lifecycle ---
+    function startTimer() {
+      if (isRunning) return;
+      playClick();
+      isRunning = true;
+      playIcon.textContent = '⏸';
+      playText.textContent = '暫停';
+      stateLabel.textContent = currentMode === 'work' ? '專注進行中...' : '深呼吸放鬆中...';
+      timeDisplay.classList.add('timer-running');
+
+      timerId = setInterval(() => {
+        if (remainingTime > 0) {
+          remainingTime--;
+          updateDisplay();
+        } else {
+          onTimerComplete();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (!isRunning) return;
+      playClick();
+      isRunning = false;
+      clearInterval(timerId);
+      timerId = null;
+      playIcon.textContent = '▶';
+      playText.textContent = currentMode === 'work' ? '繼續專注' : '繼續休息';
+      stateLabel.textContent = '已暫停';
+      timeDisplay.classList.remove('timer-running');
+      updateDisplay();
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      remainingTime = currentMode === 'work' ? WORK_DURATION : BREAK_DURATION;
+      stateLabel.textContent = '準備開始';
+      playText.textContent = currentMode === 'work' ? '開始專注' : '開始休息';
+      updateDisplay();
+    }
+
+    function skipStage() {
+      pauseTimer();
+      if (currentMode === 'work') {
+        switchMode('break');
+      } else {
+        switchMode('work');
+      }
+    }
+
+    function sendNotification(title, body) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+          body,
+          icon: 'https://cdn-icons-png.flaticon.com/512/1202/1202125.png'
+        });
+      }
+    }
+
+    function onTimerComplete() {
+      clearInterval(timerId);
+      isRunning = false;
+      timeDisplay.classList.remove('timer-running');
+      playChimeFinish();
+
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      if (currentMode === 'work') {
+        // Record completed tomato
+        dailyStats.tomatoes++;
+        dailyStats.focusMinutes += 50;
+        dailyStats.history.unshift({
+          type: 'work',
+          timestamp: timeStr
+        });
+        saveDailyStats(dailyStats);
+        renderDailyStats();
+
+        sendNotification('🍅 50分鐘工作完成！', '太棒了！已累積 1 顆番茄，休息 10 分鐘放鬆一下眼睛與筋骨吧！');
+        alert('🎉 恭喜完成 50 分鐘專注！已累積 1 顆番茄 🍅\n接下來休息 10 分鐘！');
+
+        roundCount++;
+        currentRoundNum.textContent = roundCount;
+        switchMode('break');
+        startTimer(); // Auto start break
+      } else {
+        dailyStats.history.unshift({
+          type: 'break',
+          timestamp: timeStr
+        });
+        saveDailyStats(dailyStats);
+        renderDailyStats();
+
+        sendNotification('☕ 10分鐘休息結束！', '充電完畢，準備好進入下一個 50 分鐘的專注時段了嗎？');
+        alert('⚡ 10 分鐘休息結束！準備開始下一輪專注！');
+
+        switchMode('work');
+      }
+    }
+
+    // --- Event Listeners ---
+    startPauseBtn.addEventListener('click', toggleTimer);
+    resetBtn.addEventListener('click', resetTimer);
+    skipBtn.addEventListener('click', skipStage);
+    workTab.addEventListener('click', () => switchMode('work', true));
+    breakTab.addEventListener('click', () => switchMode('break', true));
+
+    // Sound Toggle
+    soundToggleBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundToggleBtn.textContent = soundEnabled ? '🔔' : '🔕';
+      soundToggleBtn.title = soundEnabled ? '提示音：開啟' : '提示音：靜音';
+    });
+
+    // Notification Permission
+    notifyBtn.addEventListener('click', () => {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            notifyBtn.textContent = '💬✅';
+            alert('桌面通知授權成功！');
+          } else {
+            alert('通知權限未開啟或被拒絕。');
+          }
+        });
+      } else {
+        alert('此瀏覽器不支援桌面通知功能。');
+      }
+    });
+
+    // History Toggle
+    toggleHistoryBtn.addEventListener('click', () => {
+      const isHidden = historyDrawer.classList.contains('hidden');
+      if (isHidden) {
+        historyDrawer.classList.remove('hidden');
+        historyArrow.textContent = '▲';
+      } else {
+        historyDrawer.classList.add('hidden');
+        historyArrow.textContent = '▼';
+      }
+    });
+
+    // Clear today stats
+    clearTodayBtn.addEventListener('click', () => {
+      if (confirm('確定要重設今天的番茄數與紀錄嗎？')) {
+        dailyStats = {
+          date: getTodayKey(),
+          tomatoes: 0,
+          focusMinutes: 0,
+          history: []
+        };
+        saveDailyStats(dailyStats);
+        renderDailyStats();
+      }
+    });
+
+    // Date String init
+    const now = new Date();
+    const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    currentDateStr.textContent = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 (${days[now.getDay()]})`;
+
+    // Init display
+    updateDisplay();
+    renderDailyStats();
+  </script>
+</body>
+</html>
