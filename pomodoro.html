@@ -2,8 +2,19 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>🍅 50/10 番茄鐘計時器</title>
+  
+  <!-- PWA & Mobile App Meta Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="番茄鐘">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     @keyframes pulse-ring {
@@ -30,7 +41,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-rose-500 selection:text-white font-sans antialiased relative">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-3 sm:p-4 selection:bg-rose-500 selection:text-white font-sans antialiased relative">
   
   <!-- Floating Toast Notification -->
   <div id="toastContainer" class="fixed top-5 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4"></div>
@@ -38,26 +49,32 @@
   <!-- Background Glow FX -->
   <div id="ambientGlow" class="fixed inset-0 pointer-events-none transition-colors duration-1000 -z-10 bg-[radial-gradient(circle_at_50%_40%,rgba(244,63,94,0.15)_0%,transparent_60%)]"></div>
 
-  <!-- Main Container -->
-  <div class="w-full max-w-md bg-slate-900/90 border border-slate-800 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+  <!-- Main App Container -->
+  <div class="w-full max-w-md bg-slate-900/90 border border-slate-800 backdrop-blur-xl rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
     
     <!-- Top Header -->
-    <header class="flex items-center justify-between mb-6">
+    <header class="flex items-center justify-between mb-5">
       <div class="flex items-center gap-2.5">
         <span class="text-2xl" id="modeIcon">🍅</span>
         <div>
-          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
             番茄鐘計時器
-            <span id="modeBadge" class="text-xs px-2 py-0.5 rounded-full font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30">
-              專注工作 (50m)
+            <span id="modeBadge" class="text-[11px] px-2 py-0.5 rounded-full font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30">
+              專注 (50m)
             </span>
           </h1>
-          <p class="text-xs text-slate-400" id="currentDateStr">2026年10月28日</p>
+          <p class="text-[11px] text-slate-400" id="currentDateStr">2026年10月28日</p>
         </div>
       </div>
 
       <!-- Action Toggles -->
       <div class="flex items-center gap-1.5">
+        <!-- Install PWA App Button -->
+        <button id="installAppBtn" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/20 to-amber-500/20 hover:from-rose-500/30 hover:to-amber-500/30 border border-rose-500/40 text-rose-300 hover:text-white text-xs font-semibold transition shadow-sm active:scale-95 cursor-pointer" title="安裝為手機或電腦獨立 App">
+          <span>📲</span>
+          <span class="hidden sm:inline">安裝 App</span>
+        </button>
+
         <button id="soundToggleBtn" class="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition text-sm flex items-center gap-1 border border-slate-800" title="提示音切換">
           <span id="soundIcon">🔔</span>
         </button>
@@ -69,7 +86,7 @@
     </header>
 
     <!-- Mode Selector Tabs -->
-    <div class="grid grid-cols-2 gap-2 bg-slate-950/60 p-1.5 rounded-2xl border border-slate-800/80 mb-6">
+    <div class="grid grid-cols-2 gap-2 bg-slate-950/60 p-1.5 rounded-2xl border border-slate-800/80 mb-5">
       <button id="workTab" class="py-2 text-xs font-semibold rounded-xl transition-all shadow-sm bg-rose-600 text-white shadow-rose-950">
         💻 專注工作 (50分)
       </button>
@@ -79,8 +96,8 @@
     </div>
 
     <!-- Circular Timer Display -->
-    <div class="relative flex items-center justify-center my-4">
-      <svg class="w-64 h-64 transform -rotate-90" viewBox="0 0 240 240">
+    <div class="relative flex items-center justify-center my-3">
+      <svg class="w-60 h-60 sm:w-64 sm:h-64 transform -rotate-90" viewBox="0 0 240 240">
         <!-- Background Track -->
         <circle cx="120" cy="120" r="102" stroke="currentColor" stroke-width="12" class="text-slate-800/60" fill="transparent" />
         <!-- Progress Bar -->
@@ -102,7 +119,7 @@
     </div>
 
     <!-- Timer Controls -->
-    <div class="flex items-center justify-center gap-3 my-6">
+    <div class="flex items-center justify-center gap-3 my-5">
       <button id="resetBtn" class="p-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700/80 text-slate-300 hover:text-white transition active:scale-95 border border-slate-700/60" title="重設計時">
         🔄
       </button>
@@ -137,8 +154,8 @@
       <!-- Daily Focus Time & Progress Bar -->
       <div class="space-y-1.5">
         <div class="flex justify-between text-[11px] text-slate-400">
-          <span>今日累計專注時間：<strong id="totalFocusMinutes" class="text-cyan-400 font-semibold">0</strong> 分鐘</span>
-          <span>目標進度：<span id="goalPercent">0%</span> (目標 6 顆)</span>
+          <span>今日累計專注：<strong id="totalFocusMinutes" class="text-cyan-400 font-semibold">0</strong> 分鐘</span>
+          <span>目標：<span id="goalPercent">0%</span> (目標 6 顆)</span>
         </div>
         <div class="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden">
           <div id="goalProgressBar" class="bg-gradient-to-r from-rose-500 to-amber-500 h-full w-0 transition-all duration-500 rounded-full"></div>
@@ -152,7 +169,7 @@
           <span id="historyArrow">▼</span>
         </button>
         <button id="clearTodayBtn" class="text-slate-500 hover:text-red-400 transition" title="清空今日統計">
-          重設今日數據
+          重設數據
         </button>
       </div>
 
@@ -166,7 +183,69 @@
 
   </div>
 
-  <!-- In-Page Completion Modal (Replaces native blocking alert) -->
+  <!-- App Install Guide Modal -->
+  <div id="installModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-700/80 rounded-3xl p-6 text-left shadow-2xl relative">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">📲</span>
+          <h3 class="text-base font-bold text-white">安裝番茄鐘為 App</h3>
+        </div>
+        <button id="closeInstallModalBtn" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+      
+      <p class="text-xs text-slate-300 leading-relaxed mb-4">
+        安裝後可像原生 App 一樣獨立開啟，擁有專屬桌面圖示，支援離線使用與全螢幕專注！
+      </p>
+
+      <div class="space-y-3 mb-5">
+        <!-- Windows / NB Option -->
+        <div class="p-3 bg-slate-950/70 rounded-2xl border border-slate-800 text-xs">
+          <div class="font-bold text-cyan-300 mb-1 flex items-center gap-1.5">
+            <span>💻</span> Windows / 筆電 (Chrome 或 Edge)
+          </div>
+          <div class="text-slate-400 space-y-0.5">
+            <div>• 點擊網址列右側的 <strong>「安裝 App 📥」</strong> 圖示</div>
+            <div>• 或點擊下方的「立即安裝」按鈕</div>
+          </div>
+        </div>
+
+        <!-- iOS Option -->
+        <div class="p-3 bg-slate-950/70 rounded-2xl border border-slate-800 text-xs">
+          <div class="font-bold text-rose-300 mb-1 flex items-center gap-1.5">
+            <span>🍏</span> iPhone / iPad (Safari)
+          </div>
+          <div class="text-slate-400 space-y-0.5">
+            <div>1. 點擊 Safari 底部工具列的 <strong>「分享 ⬆️」</strong></div>
+            <div>2. 向下滑動點選 <strong>「加入主畫面 ➕」</strong></div>
+            <div>3. 點擊右上角「新增」，手機桌面即出現 App！</div>
+          </div>
+        </div>
+
+        <!-- Android Option -->
+        <div class="p-3 bg-slate-950/70 rounded-2xl border border-slate-800 text-xs">
+          <div class="font-bold text-emerald-300 mb-1 flex items-center gap-1.5">
+            <span>🤖</span> Android 手機 (Chrome)
+          </div>
+          <div class="text-slate-400 space-y-0.5">
+            <div>• 點擊瀏覽器右上角 <strong>「⋮」</strong> 選單</div>
+            <div>• 選擇 <strong>「安裝應用程式」</strong> 或「加到主畫面」</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button id="directInstallBtn" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold text-xs shadow-lg transition active:scale-95">
+          🚀 立即嘗試安裝
+        </button>
+        <button id="dismissInstallModalBtn" class="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition">
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-Page Completion Modal -->
   <div id="celebrationModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
     <div class="w-full max-w-sm bg-slate-900 border border-slate-700/80 rounded-3xl p-6 text-center shadow-2xl transform scale-100 transition-all">
       <div class="text-5xl mb-3" id="modalEmoji">🎉</div>
@@ -197,7 +276,7 @@
         本計時器已啟用<strong>【內建和弦提示音 🔔】</strong>與<strong>【分頁標題動態閃爍】</strong>，即使在背景或切換分頁，時間到時都會響起並提醒您！
       </p>
       <div class="p-3 bg-slate-950/70 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1 mb-4">
-        <div class="font-semibold text-cyan-300">如需啟用 Chrome 桌面右下角彈出通知：</div>
+        <div class="font-semibold text-cyan-300">如需啟用桌面彈出通知：</div>
         <div>1. 點擊網址列左側的 <strong>「調整 / 鎖頭圖示」</strong></div>
         <div>2. 將 <strong>「通知 (Notification)」</strong> 切換為 <strong>允許</strong></div>
         <div>3. 重新整理網頁即可生效</div>
@@ -209,6 +288,15 @@
   </div>
 
   <script>
+    // --- Service Worker Registration (PWA) ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('PWA ServiceWorker ready:', reg.scope))
+          .catch(err => console.log('PWA ServiceWorker error:', err));
+      });
+    }
+
     // --- Configuration ---
     const WORK_DURATION = 50 * 60; // 50 mins
     const BREAK_DURATION = 10 * 60; // 10 mins
@@ -223,6 +311,7 @@
     let roundCount = 1;
     let soundEnabled = true;
     let titleBlinkInterval = null;
+    let deferredInstallPrompt = null;
 
     // --- Toast Function ---
     function showToast(message, icon = '🔔') {
@@ -277,7 +366,6 @@
     }
 
     function playChimeFinish() {
-      // Gentle uplifting chime
       playTone(523.25, 0.6, 'sine', 0);
       playTone(659.25, 0.6, 'sine', 0.15);
       playTone(783.99, 0.6, 'sine', 0.3);
@@ -319,7 +407,12 @@
     const notifyStatusDot = document.getElementById('notifyStatusDot');
     const currentDateStr = document.getElementById('currentDateStr');
     
-    // Modals
+    // PWA & Modals
+    const installAppBtn = document.getElementById('installAppBtn');
+    const installModal = document.getElementById('installModal');
+    const closeInstallModalBtn = document.getElementById('closeInstallModalBtn');
+    const dismissInstallModalBtn = document.getElementById('dismissInstallModalBtn');
+    const directInstallBtn = document.getElementById('directInstallBtn');
     const celebrationModal = document.getElementById('celebrationModal');
     const modalEmoji = document.getElementById('modalEmoji');
     const modalTitle = document.getElementById('modalTitle');
@@ -329,6 +422,56 @@
     const guideModal = document.getElementById('guideModal');
     const closeGuideBtn = document.getElementById('closeGuideBtn');
     const confirmGuideBtn = document.getElementById('confirmGuideBtn');
+
+    // --- PWA Installation Handling ---
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      installAppBtn.innerHTML = '<span>📲</span><span>安裝 App</span>';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      installAppBtn.innerHTML = '<span>✅</span><span>已安裝</span>';
+      showToast('🎉 番茄鐘 App 已成功安裝到您的裝置！', '📲');
+    });
+
+    // Check if running as standalone app
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isStandalone) {
+      installAppBtn.innerHTML = '<span>🍅</span><span>番茄鐘 App</span>';
+      installAppBtn.title = '目前正以 App 模式運行中';
+    }
+
+    installAppBtn.addEventListener('click', () => {
+      if (isStandalone) {
+        showToast('目前已經是在獨立 App 視窗模式中運行！', '✨');
+        return;
+      }
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            showToast('正在安裝番茄鐘 App...', '⏳');
+          }
+          deferredInstallPrompt = null;
+        });
+      } else {
+        // Open install guide modal for iOS or manual setup
+        installModal.classList.remove('hidden');
+      }
+    });
+
+    closeInstallModalBtn.addEventListener('click', () => installModal.classList.add('hidden'));
+    dismissInstallModalBtn.addEventListener('click', () => installModal.classList.add('hidden'));
+    directInstallBtn.addEventListener('click', () => {
+      if (deferredInstallPrompt) {
+        installModal.classList.add('hidden');
+        deferredInstallPrompt.prompt();
+      } else {
+        showToast('請依照上方說明點選瀏覽器選單進行安裝！', '💡');
+      }
+    });
 
     // --- LocalStorage & Daily Data ---
     function getTodayKey() {
@@ -474,7 +617,7 @@
     // --- Timer Lifecycle ---
     function startTimer() {
       if (isRunning) return;
-      getAudioContext(); // Unlock audio context
+      getAudioContext();
       playClick();
       stopTitleBlink();
       isRunning = true;
@@ -538,7 +681,7 @@
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification(title, {
             body,
-            icon: 'https://cdn-icons-png.flaticon.com/512/1202/1202125.png'
+            icon: './icon-192.png'
           });
         }
       } catch (e) {}
@@ -554,7 +697,6 @@
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
       if (currentMode === 'work') {
-        // Record completed tomato
         dailyStats.tomatoes++;
         dailyStats.focusMinutes += 50;
         dailyStats.history.unshift({
@@ -564,11 +706,9 @@
         saveDailyStats(dailyStats);
         renderDailyStats();
 
-        // Flashing title & sound
         startTitleBlink('🔔【時間到！】完成 50 分鐘專注！', '🍅 請開始 10 分鐘休息！');
         trySendBrowserNotification('🍅 50分鐘專注完成！', '太棒了！已累積 1 顆番茄，休息 10 分鐘放鬆一下吧！');
 
-        // Show elegant in-page modal
         modalEmoji.textContent = '🎉';
         modalTitle.textContent = '50 分鐘專注完成！';
         modalDesc.textContent = '太棒了！恭喜累積 1 顆番茄，現在讓眼睛與大腦放鬆 10 分鐘吧！';
@@ -598,7 +738,6 @@
       }
     }
 
-    // Modal action button click
     modalActionBtn.addEventListener('click', () => {
       celebrationModal.classList.add('hidden');
       stopTitleBlink();
@@ -647,7 +786,6 @@
           }
         });
       } else {
-        // Denied: show guide modal gently instead of ugly alert
         guideModal.classList.remove('hidden');
       }
     });
