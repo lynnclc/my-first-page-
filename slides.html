@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>產業人才投資計畫 - 8頁簡報簡報</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.88);
+      --card-border: rgba(148, 163, 184, 0.15);
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Ambient Background Glow */
+    .bg-gradient-glow {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.12) 0%, transparent 45%),
+                  radial-gradient(circle at 85% 85%, rgba(129, 140, 248, 0.12) 0%, transparent 45%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Deck Layout */
+    .deck-container {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 32px;
+      z-index: 10;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1200px;
+      height: 100%;
+      max-height: 720px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 44px 56px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      flex-direction: column;
+      justify-content: space-between;
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Bullet Cards */
+    .bullet-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 24px 28px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bullet-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .bullet-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(180deg, #38bdf8, #818cf8);
+    }
+
+    /* Bottom Controller */
+    .control-bar {
+      height: 72px;
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 23, 42, 0.9);
+      border-top: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      z-index: 20;
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f1f5f9;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      background: rgba(148, 163, 184, 0.3);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .dot.active {
+      width: 28px;
+      background: #38bdf8;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .dot:hover:not(.active) {
+      background: rgba(148, 163, 184, 0.6);
+    }
+
+    .badge-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient-glow"></div>
+
+  <!-- Top Bar -->
+  <header class="px-8 py-4 flex items-center justify-between z-20 border-b border-slate-800/60 bg-slate-950/40">
+    <div class="flex items-center gap-3">
+      <span class="inline-block w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_#38bdf8]"></span>
+      <span class="text-sm font-semibold tracking-wider uppercase text-slate-300">勞動部勞動力發展署・政策簡報</span>
+      <span class="text-xs px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 font-mono">113.12.25 修正令</span>
+    </div>
+    <div class="flex items-center gap-4 text-xs text-slate-400">
+      <span>快捷鍵: <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">←</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">→</kbd> 或 <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">Space</kbd> 切換</span>
+      <button id="fullscreenBtn" class="hover:text-cyan-400 transition" title="切換全螢幕">⛶ 全螢幕</button>
+    </div>
+  </header>
+
+  <!-- Slide Stage -->
+  <main class="deck-container">
+
+    <!-- Slide 1 -->
+    <section class="slide active" data-index="1">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="badge-chip bg-cyan-950 text-cyan-400 border border-cyan-800/50">SLIDE 01 / 08 • 政策戰略願景</span>
+          <span class="text-xs text-slate-400 font-mono">產業人才投資計畫重點簡報</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-snug">
+          計畫核心宗旨與推動願景
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">立足國家人才資本政策，串聯區域辦訓量能，全面激發勞工自我提升動能</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 my-auto">
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🎯</span>
+            <h3 class="text-base font-bold text-cyan-300">政策源起與核心宗旨</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            依據<strong>《產業人才投資方案補助要點》</strong>，激勵在職勞工自主學習知識、實務技能及職場態度，持續累積個人人力資本與國家整體競爭力。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🤝</span>
+            <h3 class="text-base font-bold text-cyan-300">產官學協同運作</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            緊密結合優質民間辦訓機構與大專校院，依據勞動力發展署各分署之<strong>區域產業特性與人力需求</strong>，精準規劃多元化實務導向之訓練班次。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">📈</span>
+            <h3 class="text-base font-bold text-cyan-300">培育核心效益</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            保障勞工優質參訓品質與提供高額補助，有效減輕在職進修經濟負擔，厚植就業穩定力並奠定<strong>產業數位轉型與永續發展基石</strong>。
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+        <span>依據：產業人才投資方案補助要點第一條至第二條</span>
+        <span>勞動部勞動力發展署發布</span>
+      </div>
+    </section>
+
+    <!-- Slide 2 -->
+    <section class="slide" data-index="2">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="badge-chip bg-indigo-950 text-indigo-400 border border-indigo-800/50">SLIDE 02 / 08 • 資格審查規範</span>
+          <span class="text-xs text-slate-400 font-mono">參訓學員資格</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-snug">
+          參訓對象與身分資格條件
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">明確界定受補助之在職勞工年齡、投保資格與跨國居留規範</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 my-auto">
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">👤</span>
+            <h3 class="text-base font-bold text-indigo-300">法定年齡與保險身分</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            年滿 <strong>15 歲以上在職勞工</strong>（以開訓日為基準），具備<strong>就業保險、勞保、勞工職業災害保險或農民健康保險</strong>被保險人身分者均可受訓。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🌏</span>
+            <h3 class="text-base font-bold text-indigo-300">多元納入對象涵蓋</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            全面納入本國籍、與國人結婚獲准在台工作之外籍與陸港澳配偶、泰緬單一國籍無戶籍國民，以及人口販運合法獲准工作之受害者。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">⚠️</span>
+            <h3 class="text-base font-bold text-indigo-300">排他與參訓限制</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            參加失業者職前補助期間<strong>不得重複申領</strong>；重疊時段限報一班；且同一訓練班次中同一投保單位員工<strong>不得超過該班核定人數之 1/2</strong>。
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+        <span>依據：計畫第四條、第五條、第二十七條規定</span>
+        <span>資格基準日：各班課程開訓當日</span>
+      </div>
+    </section>
+
+    <!-- Slide 3 -->
+    <section class="slide" data-index="3">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="badge-chip bg-emerald-950 text-emerald-400 border border-emerald-800/50">SLIDE 03 / 08 • 補助經費機制</span>
+          <span class="text-xs text-slate-400 font-mono">財務補助標準</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-snug">
+          補助額度與「三年十萬」制度
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">落實多元補助梯度，三年十萬額度循環累計，全力扶持特定弱勢群體</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 my-auto">
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">💰</span>
+            <h3 class="text-base font-bold text-emerald-300">三年十萬最高上限</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            每位學員 <strong>3 年內最高補助總額達新臺幣 10 萬元</strong>。以初次參訓開訓日起算 3 年為一週期，期滿後重新自後續參訓課程開訓日起算。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">💳</span>
+            <h3 class="text-base font-bold text-emerald-300">一般勞工 80% 補助</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            以辦訓單位核定收費標準，政府常態性補助<strong>每一學員 80% 訓練費用</strong>，學員僅需自行負擔 20% 自付額，高性價比啟動在職進修。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">✨</span>
+            <h3 class="text-base font-bold text-emerald-300">特定對象 100% 全額</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            中高齡（45-64歲）、高齡者（逾65歲）、身心障礙、原住民、低收及中低收入戶、獨力負擔家計者與家暴被害人等，<strong>全額 100% 補助學費</strong>。
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+        <span>依據：計畫第六條、第七條及就業服務法第二十四條規定</span>
+        <span>結訓撥付：缺席未逾 1/5 且考核合格逕撥入個人帳戶</span>
+      </div>
+    </section>
+
+    <!-- Slide 4 -->
+    <section class="slide" data-index="4">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="badge-chip bg-amber-950 text-amber-400 border border-amber-800/50">SLIDE 04 / 08 • 班級運作標準</span>
+          <span class="text-xs text-slate-400 font-mono">開班與時程規範</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-snug">
+          開班規範與時數期程要求
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">嚴格規範每班訓練容量、時數長度與開訓期程，落實自辦無轉包原則</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 my-auto">
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">⏱️</span>
+            <h3 class="text-base font-bold text-amber-300">訓練時數與期程標準</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            每班訓練時數應達 <strong>16 小時以上</strong>，最高以<strong>不超過 144 小時</strong>為原則；全期開課期間<strong>不得超過 4 個月</strong>，分為上、下半年度開訓。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">👥</span>
+            <h3 class="text-base font-bold text-amber-300">班次容量與人數管控</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            每班核定補助人數上限為 <strong>40 人</strong>；班內招收非本計畫補助之自費生，至多不得超過原核定人數之 <strong>20%</strong>，以保障政府資源效益。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🛡️</span>
+            <h3 class="text-base font-bold text-amber-300">專案主辦與防弊機制</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            經核定班次應自行辦理，<strong>嚴禁任何轉包、分包或代其他單位辦訓</strong>；所開班次具有公共性，<strong>絕對不得限定僅限特定會員參訓</strong>。
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+        <span>依據：計畫第十一條、第十三條、第十四條、第十六條</span>
+        <span>年度期程：上半年開訓 1/1~6/30，下半年開訓 7/1~12/31</span>
+      </div>
+    </section>
+
+    <!-- Slide 5 -->
+    <section class="slide" data-index="5">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="badge-chip bg-rose-950 text-rose-400 border border-rose-800/50">SLIDE 05 / 08 • 產業與師資</span>
+          <span class="text-xs text-slate-400 font-mono">課程品質與師資遴聘</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-snug">
+          產業導向與專業師資標準
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">錨定政策性產業重點，遴聘具備實務深厚功底之專業講師與助教團隊</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 my-auto">
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🏭</span>
+            <h3 class="text-base font-bold text-rose-300">政策性產業優先開班</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            訓練類別以政府推動之<strong>政策性重點產業為優先</strong>，依分署需求核定；明令<strong>不受理托育人員與照顧服務員</strong>之訓練班次申請。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">👨‍🏫</span>
+            <h3 class="text-base font-bold text-rose-300">產學實務師資陣容</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            講師須符教育部聘任資格、甲/乙級技術士證，或具<strong>特殊造詣任教/技術 5 年以上之業界師傅</strong>，亦可為大專畢業任職企業 2 年以上之實務專才。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">📚</span>
+            <h3 class="text-base font-bold text-rose-300">多元實用課程類別</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            分為大專校院<strong>實務應用學分班</strong>，及各法人/公協會之<strong>非學分班</strong>；課程含國際溝通、數位應用、研發創新、專業技術與經營管理。
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+        <span>依據：計畫第八條、第九條、第十條、第十五條及附件一</span>
+        <span>師資標準：符合「本計畫師資及助教資格標準表」</span>
+      </div>
+    </section>
+
+    <!-- Slide 6 -->
+    <section class="slide" data-index="6">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="badge-chip bg-violet-950 text-violet-400 border border-violet-800/50">SLIDE 06 / 08 • 機構申請資格</span>
+          <span class="text-xs text-slate-400 font-mono">辦訓單位門檻</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-snug">
+          辦訓單位資格與 TTQS 認證
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">嚴選具備法定資格之辦訓機構，要求 TTQS 品質認證與場地公共安全</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 my-auto">
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🏆</span>
+            <h3 class="text-base font-bold text-violet-300">TTQS 評核品質門檻</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            受理截止日前 120 日期間持有發展署 <strong>TTQS 訓練機構版「通過」以上有效證書</strong>；且最近一次審查計分表被列為 D 級者嚴格不得申請。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🏛️</span>
+            <h3 class="text-base font-bold text-violet-300">合格辦訓機構範疇</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            限教育部核准之<strong>大專校院</strong>，或依法設立 2 年以上之職訓機構、工商業團體、農漁民團體、研究機構與公益法人（<strong>排除勞工團體</strong>）。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🏢</span>
+            <h3 class="text-base font-bold text-violet-300">場地公安與消檢規範</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            配置專職培訓人員；訓練場地必須在開訓前檢附效期內<strong>消防安全設備檢修受理單</strong>，以及合格之<strong>建築物防火避難安全申報證明</strong>。
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+        <span>依據：計畫第三條、第十七條、第十九條</span>
+        <span>場地規範：以立案服務區域優先，大專以核定校地為限</span>
+      </div>
+    </section>
+
+    <!-- Slide 7 -->
+    <section class="slide" data-index="7">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="badge-chip bg-sky-950 text-sky-400 border border-sky-800/50">SLIDE 07 / 08 • 評核與經費配額</span>
+          <span class="text-xs text-slate-400 font-mono">兩階段審查作業</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-snug">
+          兩階段審查與經費分級核配
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">產官學外部委員客觀把關，指標化分級核配經費，落實申復救濟管道</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 my-auto">
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">📋</span>
+            <h3 class="text-base font-bold text-sky-300">兩階段嚴謹審查機制</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            <strong>第一階段</strong>由分區審查小組（產官學勞代表）實質審核課程屬性與師資；<strong>第二階段</strong>依據「審查計分表」客觀核計訓練單位辦訓能力。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">📊</span>
+            <h3 class="text-base font-bold text-sky-300">ABCD 預算分配比率</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            排序分級：<strong>A級（前25%）配 50% 經費</strong>、B級（25-55%）配 30%、C級（55-90%及新單位）配 20%、D級（末10%）不配經費。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🎖️</span>
+            <h3 class="text-base font-bold text-sky-300">iCAP 認證獎勵與申復</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            取得 <strong>iCAP 職能導向課程認證</strong>享 3 年優先核定且額度外加；對審查核班結果有異議，可於公告次日起 <strong>10 日內</strong>書面提出申復（限一次）。
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+        <span>依據：計畫第二十一條、第二十三條、附件二、附件三、附件四</span>
+        <span>審議機制：審查委員嚴格遵守利益迴避原則</span>
+      </div>
+    </section>
+
+    <!-- Slide 8 -->
+    <section class="slide" data-index="8">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="badge-chip bg-red-950 text-red-400 border border-red-800/50">SLIDE 08 / 08 • 稽核與停權退場</span>
+          <span class="text-xs text-slate-400 font-mono">督導考核與罰則</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-snug">
+          督導考核、結訓請領與罰則
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">無預警抽查強化品質監管，嚴明學員與辦訓單位停權違規處分準則</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 my-auto">
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🔍</span>
+            <h3 class="text-base font-bold text-red-300">無預警抽查與結訓撥款</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            分署採<strong>實地與電話不預告訪視</strong>；學員結訓後 21 日內由單位函送請款，缺課未逾 1/5 且合格者，補助款直接核撥入個人帳戶。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">⛔</span>
+            <h3 class="text-base font-bold text-red-300">學員違規處分機制</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            以不實資料參訓或冒名頂替者，撤銷補助追繳款項並<strong>停止補助 2 年</strong>；到課與簽名不符或代簽名者，追繳並<strong>停止補助 1 年</strong>。
+          </p>
+        </div>
+
+        <div class="bullet-card">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">⚖️</span>
+            <h3 class="text-base font-bold text-red-300">辦訓單位違規停權</h3>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            超收費用、廣告不實者<strong>停權 1 年</strong>；擅自轉包、人頭虛報、重大疏失、未保存單據 10 年或未繳回差額者，停止未開班次並<strong>停權 2 年</strong>。
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+        <span>依據：計畫第三十三至四十二條規定</span>
+        <span>退費標準：開訓日前退 95%、未滿 1/3 退 50%、逾 1/3 不退</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation -->
+  <footer class="control-bar">
+    <div class="flex items-center gap-3">
+      <button id="prevBtn" class="nav-btn">
+        <span>◀</span> 上一頁
+      </button>
+      <button id="nextBtn" class="nav-btn">
+        下一頁 <span>▶</span>
+      </button>
+    </div>
+
+    <!-- Indicator Dots -->
+    <div class="flex items-center gap-2" id="dotsContainer">
+      <div class="dot active" data-target="1" title="第 1 頁"></div>
+      <div class="dot" data-target="2" title="第 2 頁"></div>
+      <div class="dot" data-target="3" title="第 3 頁"></div>
+      <div class="dot" data-target="4" title="第 4 頁"></div>
+      <div class="dot" data-target="5" title="第 5 頁"></div>
+      <div class="dot" data-target="6" title="第 6 頁"></div>
+      <div class="dot" data-target="7" title="第 7 頁"></div>
+      <div class="dot" data-target="8" title="第 8 頁"></div>
+    </div>
+
+    <!-- Slide Index Display -->
+    <div class="flex items-center gap-2">
+      <span class="text-sm font-mono text-slate-400 font-semibold">
+        PAGE <span id="currentSlideNum" class="text-cyan-400 text-base">1</span> / 8
+      </span>
+    </div>
+  </footer>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const currentSlideNum = document.getElementById('currentSlideNum');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+    let current = 0;
+    const total = slides.length;
+
+    function showSlide(index) {
+      if (index < 0) index = 0;
+      if (index >= total) index = total - 1;
+      current = index;
+
+      slides.forEach((s, i) => {
+        s.classList.toggle('active', i === current);
+      });
+
+      dots.forEach((d, i) => {
+        d.classList.toggle('active', i === current);
+      });
+
+      currentSlideNum.textContent = current + 1;
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === total - 1;
+    }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+
+    dots.forEach((dot, idx) => {
+      dot.addEventListener('click', () => showSlide(idx));
+    });
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        showSlide(current + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        showSlide(current - 1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        showSlide(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        showSlide(total - 1);
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullScreen();
+      }
+    });
+
+    // Fullscreen Toggle
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        fullscreenBtn.textContent = '✕ 離開全螢幕';
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+          fullscreenBtn.textContent = '⛶ 全螢幕';
+        }
+      }
+    }
+
+    fullscreenBtn.addEventListener('click', toggleFullScreen);
+
+    // Initial call
+    showSlide(0);
+  </script>
+</body>
+</html>
